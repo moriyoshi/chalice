@@ -10,6 +10,7 @@ from chalice.constants import DEFAULT_HANDLER_NAME
 
 
 StrMap = Dict[str, Any]
+CfnExpr = Dict[str, Any]
 
 
 class Config(object):
@@ -302,7 +303,7 @@ class Config(object):
 
     @property
     def iam_role_arn(self):
-        # type: () -> str
+        # type: () -> Union[str, CfnExpr]
         return self._chain_lookup('iam_role_arn',
                                   varies_per_chalice_stage=True,
                                   varies_per_function=True)
@@ -338,7 +339,7 @@ class Config(object):
 
     @property
     def environment_variables(self):
-        # type: () -> Dict[str, str]
+        # type: () -> Dict[str, Union[str, CfnExpr]]
         return self._chain_merge('environment_variables')
 
     @property
@@ -351,14 +352,14 @@ class Config(object):
 
     @property
     def security_group_ids(self):
-        # type: () -> List[str]
+        # type: () -> List[Union[str, CfnExpr]]
         return self._chain_lookup('security_group_ids',
                                   varies_per_chalice_stage=True,
                                   varies_per_function=True)
 
     @property
     def subnet_ids(self):
-        # type: () -> List[str]
+        # type: () -> List[Union[str, CfnExpr]]
         return self._chain_lookup('subnet_ids',
                                   varies_per_chalice_stage=True,
                                   varies_per_function=True)

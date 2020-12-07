@@ -8,6 +8,7 @@ import functools
 import click
 from botocore.config import Config as BotocoreConfig
 from botocore.session import Session
+import six
 from typing import Any, Optional, Dict, MutableMapping, cast  # noqa
 
 from chalice import __version__ as chalice_version
@@ -174,7 +175,12 @@ class CLIFactory(object):
                         config_from_disk=config_from_disk,
                         default_params=default_params)
         user_provided_params['chalice_app'] = functools.partial(
-            self.load_chalice_app, config.environment_variables)
+            self.load_chalice_app, {
+                k: v
+                for k, v in config.environment_variables.items()
+                if isinstance(v, six.text_type)
+            }
+        )
         return config
 
     def _validate_config_from_disk(self, config):

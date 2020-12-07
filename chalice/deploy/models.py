@@ -3,6 +3,7 @@ import enum
 from typing import List, Dict, Optional as Opt, Any, TypeVar, Union, Set  # noqa
 from typing import cast
 from attr import attrs, attrib, Factory
+from ..config import CfnExpr
 
 
 class Placeholder(enum.Enum):
@@ -39,6 +40,7 @@ class TLSVersion(enum.Enum):
 Type = TypeVar('Type')
 DV = Union[Placeholder, Type]
 StrMap = Dict[str, str]
+EnvMap = Dict[str, Union[str, CfnExpr]]
 
 
 @attrs
@@ -160,7 +162,7 @@ class IAMRole(Model):
 
 @attrs
 class PreCreatedIAMRole(IAMRole):
-    role_arn = attrib()  # type: str
+    role_arn = attrib()  # type: Union[str, CfnExpr]
 
 
 @attrs
@@ -193,7 +195,7 @@ class LambdaFunction(ManagedModel):
     resource_type = 'lambda_function'
     function_name = attrib()          # type: str
     deployment_package = attrib()     # type: DeploymentPackage
-    environment_variables = attrib()  # type: StrMap
+    environment_variables = attrib()  # type: EnvMap
     xray = attrib()                   # type: bool
     runtime = attrib()                # type: str
     handler = attrib()                # type: str
