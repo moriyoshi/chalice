@@ -605,16 +605,19 @@ class SAMTemplateGenerator(TemplateGenerator):
         sns_cfn_name = self._register_cfn_resource_name(
             resource.resource_name)
 
-        if re.match(r"^arn:aws[a-z\-]*:sns:", resource.topic):
-            topic_arn = resource.topic  # type: Union[str, Dict[str, str]]
+        if isinstance(resource.topic, six.text_type):
+            if re.match(r"^arn:aws[a-z\-]*:sns:", resource.topic):
+                topic_arn = resource.topic  # type: Union[str, Dict[str, str]]
+            else:
+                topic_arn = {
+                    'Fn::Sub': (
+                        'arn:${AWS::Partition}:sns'
+                        ':${AWS::Region}:${AWS::AccountId}:%s' %
+                        resource.topic
+                    )
+                }
         else:
-            topic_arn = {
-                'Fn::Sub': (
-                    'arn:${AWS::Partition}:sns'
-                    ':${AWS::Region}:${AWS::AccountId}:%s' %
-                    resource.topic
-                )
-            }
+            topic_arn = resource.topic
         function_cfn['Properties']['Events'] = {
             sns_cfn_name: {
                 'Type': 'SNS',
