@@ -4,14 +4,27 @@ import os
 from typing import cast
 from typing import Dict, List, Tuple, Any, Set, Optional, Text, Union  # noqa
 from attr import asdict
+from six.moves import collections_abc
 
-from chalice.config import Config  # noqa
+from chalice.config import Config, CfnExpr  # noqa
 from chalice import app
 from chalice.constants import LAMBDA_TRUST_POLICY
 from chalice.deploy import models
 from chalice.utils import UI  # noqa
 
 StrMapAny = Dict[str, Any]
+
+
+def key_for_expr(v):
+    # type: (Union[str, CfnExpr]) -> str
+    if isinstance(v, str):
+        return v
+    elif isinstance(v, collections_abc.Mapping):
+        return tuple((k, key_for_expr(v)) for k, v in v.items())
+    elif isinstance(v, collections_abc.Sequence):
+        return tuple(v)
+    else:
+        raise TypeError(str(type(v)))
 
 
 class ChaliceBuildError(Exception):
@@ -382,12 +395,13 @@ class ApplicationGraphBuilder(object):
         # type: (Config, str, str) -> models.IAMRole
         role = self._create_role_reference(config, stage_name, function_name)
         role_identifier = self._get_role_identifier(role)
-        if role_identifier in self._known_roles:
+        k = key_for_expr(role_identifier)
+        if k in self._known_roles:
             # If we've already create a models.IAMRole with the same
             # identifier, we'll use the existing object instead of
             # creating a new one.
-            return self._known_roles[role_identifier]
-        self._known_roles[role_identifier] = role
+            return self._known_roles[k]
+        self._known_roles[k] = role
         return role
 
     def _get_role_identifier(self, role):
